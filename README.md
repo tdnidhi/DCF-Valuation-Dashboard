@@ -1,20 +1,15 @@
-# Chevron (CVX) — DCF Valuation Interactive Dashboard
+# Chevron (CVX) — DCF Valuation Dashboard
 
-An interactive **Discounted Cash Flow (DCF) valuation model** for Chevron Corporation (NYSE: CVX), built as a live financial dashboard and deployed using GitHub Pages.
+An interactive **Discounted Cash Flow (DCF) valuation model** for Chevron Corporation (NYSE: CVX), built as a live financial dashboard and deployed using GitHub Pages.  
 
-This project demonstrates financial modeling, valuation analysis, and data visualization by presenting a full DCF model with interactive scenario and sensitivity analysis. The repository also includes the **complete Excel financial model used to build the valuation.**
+This project demonstrates **financial modeling, valuation analysis, and data visualization**, presenting a full DCF model with scenario and sensitivity analysis. The repository includes the **complete Excel financial model** and a **PDF report** used to build the dashboard.
 
 ---
 
 ## 🔗 Live Dashboard
 
-After deployment, your site will be available at:
-
-https://YOUR-USERNAME.github.io/YOUR-REPOSITORY-NAME/
-
-Example:
-
-https://nidhitd.github.io/cvx-dcf-valuation/
+Access the interactive dashboard here:  
+[Chevron DCF Valuation Dashboard](https://NidhiTangamDayananda.github.io/DCF-Valuation-Dashboard/)
 
 ---
 
@@ -23,30 +18,30 @@ https://nidhitd.github.io/cvx-dcf-valuation/
 | File | Description |
 |-----|-------------|
 | `index.html` | Interactive web-based valuation dashboard |
-| `CVX Report.pdf` | Full equity research style valuation report |
-| `DCF Model.xlsx` | Complete Excel financial model used for the valuation |
+| `CVX Report.pdf` | Equity research style valuation report |
+| `DCF Model.xlsx` | Full Excel financial model used for the valuation |
 | `README.md` | Project documentation |
 
 ---
 
 ## 📥 Download the Financial Model
 
-Users can download the full valuation materials directly from the website:
+You can directly download the valuation materials from the repository:
 
-- **Excel DCF Model:** Full financial model including revenue forecasts, FCFF calculations, WACC estimation, and terminal value assumptions  
-- **PDF Report:** Structured equity research style report summarizing the valuation methodology and conclusions
+- [**Download Excel DCF Model**](./DCF%20Model.xlsx) — Full financial model including revenue forecasts, FCFF calculations, WACC estimation, and terminal value assumptions  
+- [**Download PDF Report**](./CVX%20Report.pdf) — Structured equity research style report summarizing the valuation methodology and conclusions  
 
-These files allow users to review the **underlying financial model used to generate the dashboard outputs.**
+These files allow users to review the **underlying model used to generate the dashboard outputs**.
 
 ---
 
 ## 📊 Features
 
-The dashboard contains several sections commonly used in **equity research and investment banking valuation analysis**.
+The dashboard contains sections commonly used in **equity research and investment banking valuation analysis**:
 
 | Section | Description |
 |--------|-------------|
-| **Overview** | Chevron profile, key financial KPIs, revenue visualization, PDF and Excel downloads |
+| **Overview** | Chevron profile, key financial KPIs, revenue visualization, and download links |
 | **Historical Financials** | Income statement and balance sheet analysis (2020–2024) |
 | **DCF Valuation** | 10-year FCFF forecast and enterprise value bridge |
 | **WACC Calculation** | Cost of equity, cost of debt, capital structure, and WACC sensitivity |
@@ -58,7 +53,7 @@ The dashboard contains several sections commonly used in **equity research and i
 
 ## 🧠 Financial Concepts Demonstrated
 
-This project applies several core **corporate finance and valuation techniques**:
+This project applies several **core corporate finance and valuation techniques**:
 
 - Discounted Cash Flow (DCF) valuation
 - Free Cash Flow to Firm (FCFF) forecasting
@@ -72,7 +67,7 @@ This project applies several core **corporate finance and valuation techniques**
 
 ## 🛠 Technology Stack
 
-The dashboard is intentionally built using lightweight technologies so it can be deployed instantly.
+The dashboard is built using lightweight technologies for easy deployment:
 
 - HTML
 - CSS
@@ -87,9 +82,9 @@ No frameworks or build tools are required.
 
 ### Step 1 — Create a repository
 
-1. Go to https://github.com/new  
+1. Go to [Create a new repository](https://github.com/new)  
 2. Name the repository  
-3. Set repository visibility to **Public**  
+3. Set visibility to **Public**  
 4. Click **Create Repository**
 
 ---
@@ -111,47 +106,3 @@ Upload the following files to the repository root:
 2. Navigate to **Settings → Pages**  
 3. Under **Source**, select:
 
-```
-Deploy from a branch
-```
-
-4. Choose:
-
-```
-Branch: main
-Folder: / (root)
-```
-
-5. Click **Save**
-
----
-
-### Step 4 — Access the site
-
-After deployment, the dashboard will be available at:
-
-```
-https://NidhiTangamDayananda.github.io/DCF-Valuation-Dashboard/
-```
-
-The first build typically takes **30–60 seconds**.
-
----
-
-## 📈 Potential Enhancements
-
-Possible future improvements include:
-
-- Integration with financial APIs for real-time market data
-- Comparable company valuation analysis
-- Interactive scenario builder for revenue and margin assumptions
-- Monte Carlo simulation for valuation ranges
-- Additional valuation techniques such as precedent transactions
-
----
-
-## ⚠ Disclaimer
-
-Financial data sourced from Bloomberg Terminal and company filings (February 2026).
-
-This project is for **educational purposes only and does not constitute investment advice.**
