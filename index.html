@@ -6,890 +6,128 @@
 <title>CVX — Chevron DCF Valuation</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
+/* Paste all your existing CSS here */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --navy:#0A2342;--navy-m:#1B4F8A;--navy-lt:#D4E4F7;
-  --gold:#C9922A;--gold-lt:#FEF6E9;
-  --slate:#4A5568;--mist:#8896A8;--rule:#CBD5E0;--stripe:#F7FAFC;
-  --grn:#1A5C35;--grn-lt:#EAF4EE;--red:#7B1F1F;--red-lt:#FAEBEB;
-  --ink:#0D1B2A;--bg:#EFF4F9;
-  --sans:'Segoe UI','Helvetica Neue',Arial,sans-serif;
-  --r:7px;--sh:0 2px 8px rgba(10,35,66,.09);
-}
-html{scroll-behavior:smooth}
-body{font-family:var(--sans);background:var(--bg);color:var(--ink);font-size:14px}
-
-/* ─ NAV ─────────────────────────────────────────────────────────── */
-.nav{
-  background:var(--navy);border-top:3px solid var(--gold);
-  height:54px;display:flex;align-items:center;justify-content:space-between;
-  padding:0 28px;position:sticky;top:0;z-index:400;gap:12px
-}
-.nav-brand{color:#fff;font-size:1rem;font-weight:800;white-space:nowrap;letter-spacing:-.01em}
-.nav-brand span{color:var(--gold)}
-.nav-links{display:flex;gap:1px;overflow-x:auto}
-.nl{background:none;border:none;color:rgba(255,255,255,.6);font:.7rem/1 var(--sans);
-  font-weight:600;padding:8px 11px;border-radius:4px;cursor:pointer;white-space:nowrap;transition:.15s}
-.nl:hover,.nl.on{background:rgba(255,255,255,.15);color:#fff}
-.nav-pdf{
-  display:flex;align-items:center;gap:7px;
-  background:var(--gold);color:#fff;font:.71rem/1 var(--sans);font-weight:700;
-  padding:8px 16px;border-radius:5px;text-decoration:none;white-space:nowrap;flex-shrink:0;transition:.15s
-}
-.nav-pdf:hover{background:#a87522}
-.nav-pdf svg{width:14px;height:14px;fill:#fff;flex-shrink:0}
-
-/* ─ TABS ─────────────────────────────────────────────────────────── */
-.tabs{
-  background:#fff;border-bottom:2px solid var(--rule);
-  display:flex;padding:0 28px;overflow-x:auto;
-  position:sticky;top:54px;z-index:300
-}
-.tb{background:none;border:none;border-bottom:2.5px solid transparent;
-  margin-bottom:-2px;font:.72rem/1 var(--sans);font-weight:600;
-  color:var(--mist);padding:11px 13px;cursor:pointer;white-space:nowrap;transition:.15s}
-.tb:hover{color:var(--navy)}.tb.on{color:var(--navy);border-bottom-color:var(--gold)}
-
-/* ─ PANELS ───────────────────────────────────────────────────────── */
-.panel{display:none;padding:22px 28px 48px}
-.panel.on{display:block}
-.wrap{max-width:1080px;margin:0 auto}
-
-/* ─ CARDS ────────────────────────────────────────────────────────── */
-.card{background:#fff;border:1px solid var(--rule);border-radius:var(--r);
-  padding:20px 22px;margin-bottom:16px;box-shadow:var(--sh)}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-.kicker{font:.59rem/1 var(--sans);font-weight:700;text-transform:uppercase;
-  letter-spacing:.1em;color:var(--gold);margin-bottom:4px}
-.h2{font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:2px}
-.sub{font-size:.67rem;color:var(--mist);margin-bottom:12px}
-hr{border:none;border-top:1px solid var(--rule);margin:12px 0}
-
-/* ─ KPI BAR ──────────────────────────────────────────────────────── */
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);
-  border:1px solid var(--rule);border-radius:var(--r);
-  overflow:hidden;background:#fff;box-shadow:var(--sh);margin-bottom:16px}
-.kpi{padding:14px 10px;text-align:center;border-right:1px solid var(--rule)}
-.kpi:last-child{border-right:none}
-.kpi-l{font-size:.59rem;color:var(--mist);margin-bottom:5px;font-weight:500;
-  text-transform:uppercase;letter-spacing:.04em}
-.kpi-v{font-size:1.32rem;font-weight:800;line-height:1}
-.kpi-s{font-size:.59rem;color:var(--mist);margin-top:4px}
-
-/* ─ TABLES ───────────────────────────────────────────────────────── */
-.tw{overflow-x:auto;border-radius:var(--r);border:1px solid var(--rule)}
-table{width:100%;border-collapse:collapse;font-size:.74rem}
-thead tr{background:var(--navy)}
-thead th{padding:8px 10px;text-align:right;font-weight:600;
-  font-size:.67rem;color:#fff;white-space:nowrap}
-thead th:first-child{text-align:left}
-tbody tr:nth-child(even){background:var(--stripe)}
-tbody tr:hover{background:var(--navy-lt)}
-tbody td{padding:6px 10px;text-align:right;color:var(--slate);
-  border-bottom:1px solid var(--rule);white-space:nowrap}
-tbody td:first-child{text-align:left;color:var(--ink);font-weight:500}
-.tot td{font-weight:700;color:var(--navy);background:#EDF3FB!important;border-top:1.5px solid var(--navy)}
-.sec td{background:var(--slate)!important;color:#fff!important;
-  font-weight:700;font-size:.66rem;padding:5px 10px}
-.neg{color:var(--red)!important}.pos{color:var(--grn)!important}
-.dim{color:var(--mist)!important;font-size:.66rem!important}
-td.note{text-align:left!important;color:var(--mist)!important;font-size:.66rem!important}
-
-/* ─ SCENARIO CARDS ───────────────────────────────────────────────── */
-.sc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
-.sc{border-radius:var(--r);padding:18px 16px;text-align:center;border:1px solid}
-.sc.w{background:var(--red-lt);border-color:#dfaaaa}
-.sc.b{background:var(--navy-lt);border-color:#9ec0e0}
-.sc.g{background:var(--grn-lt);border-color:#9ecfb0}
-.sc-tag{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.09em;margin-bottom:5px}
-.sc.w .sc-tag{color:var(--red)}.sc.b .sc-tag{color:var(--navy)}.sc.g .sc-tag{color:var(--grn)}
-.sc-px{font-size:1.85rem;font-weight:800;margin:3px 0}
-.sc.w .sc-px{color:var(--red)}.sc.b .sc-px{color:var(--navy)}.sc.g .sc-px{color:var(--grn)}
-.sc-ud{font-size:.75rem;font-weight:700;margin-bottom:10px}
-.sc-rows{font-size:.68rem;color:var(--slate);text-align:left}
-.sc-rows div{display:flex;justify-content:space-between;padding:3px 0;
-  border-bottom:1px solid rgba(0,0,0,.07)}
-.sc-rows div span:last-child{font-weight:600;color:var(--ink)}
-
-/* ─ SENSITIVITY HEAT MAP ─────────────────────────────────────────── */
-.heat{overflow-x:auto}
-.heat table{border-collapse:collapse;font-size:.72rem;width:100%}
-.heat th{background:var(--navy);color:#fff;padding:8px 12px;font-weight:600;white-space:nowrap}
-.heat td{padding:8px 12px;text-align:center;border:1px solid var(--rule);font-weight:600;cursor:default}
-.h-base{background:var(--gold)!important;color:#fff!important;font-weight:800!important}
-.h-red{background:#fde8e8;color:var(--red)}.h-grn{background:#e6f4ec;color:var(--grn)}
-.h-mid{background:#fff;color:var(--slate)}
-
-/* ─ WACC RESULT BAR ──────────────────────────────────────────────── */
-.wacc-bar{text-align:center;background:var(--navy);color:#fff;border-radius:var(--r);
-  padding:20px;margin-bottom:14px}
-.wacc-f{font-size:.69rem;opacity:.55;margin-bottom:6px}
-.wacc-v{font-size:2.6rem;font-weight:800;color:var(--gold);line-height:1}
-.wacc-n{font-size:.68rem;opacity:.5;margin-top:5px}
-
-/* ─ BRIDGE BARS ──────────────────────────────────────────────────── */
-.bridge{display:flex;flex-direction:column;gap:7px}
-.br{display:flex;align-items:center;gap:10px;font-size:.73rem}
-.br-lbl{width:210px;flex-shrink:0;color:var(--slate)}
-.br-lbl.bold{font-weight:700;color:var(--navy)}
-.br-track{flex:1;background:var(--stripe);border-radius:3px;height:20px;
-  overflow:hidden;border:1px solid var(--rule)}
-.br-bar{height:100%;border-radius:3px;transition:width .9s ease}
-.br-val{width:92px;text-align:right;font-weight:700;color:var(--navy);flex-shrink:0}
-
-/* ─ CALCULATOR ───────────────────────────────────────────────────── */
-.calc{display:grid;grid-template-columns:310px 1fr;gap:16px;align-items:start}
-.inp{background:#fff;border:1px solid var(--rule);border-radius:var(--r);padding:20px}
-.ig{margin-bottom:15px}
-.ig label{display:flex;justify-content:space-between;
-  font-size:.7rem;font-weight:600;color:var(--slate);margin-bottom:5px}
-.ig label b{color:var(--navy);font-weight:800}
-input[type=range]{width:100%;accent-color:var(--gold);cursor:pointer}
-.ig-note{font-size:.58rem;color:var(--mist);margin-top:2px}
-.hero{text-align:center;background:var(--navy);border-radius:var(--r);
-  padding:22px 16px;margin-bottom:12px}
-.hero-l{font-size:.65rem;color:rgba(255,255,255,.55);text-transform:uppercase;
-  letter-spacing:.06em;margin-bottom:5px}
-.hero-p{font-size:3rem;font-weight:800;color:var(--gold);line-height:1}
-.hero-u{font-size:.8rem;margin-top:6px}
-.hero-u.up{color:#7EF0A2}.hero-u.dn{color:#FF9090}
-.breakdown{background:#fff;border:1px solid var(--rule);border-radius:var(--r);padding:14px}
-.bdr{display:flex;justify-content:space-between;padding:5px 0;
-  border-bottom:1px solid var(--rule);font-size:.74rem}
-.bdr:last-child{border:none;font-weight:700;color:var(--navy);font-size:.8rem}
-.bdr .lbl{color:var(--slate)}
-
-/* ─ PDF BANNER ───────────────────────────────────────────────────── */
-.pdf-banner{
-  display:flex;align-items:center;justify-content:space-between;
-  background:var(--navy);border-radius:var(--r);padding:18px 22px;
-  margin-bottom:18px;gap:16px
-}
-.pdf-banner-text strong{display:block;color:#fff;font-size:.92rem;font-weight:700;margin-bottom:3px}
-.pdf-banner-text span{color:rgba(255,255,255,.55);font-size:.69rem}
-.pdf-dl{
-  display:flex;align-items:center;gap:8px;
-  background:var(--gold);color:#fff;font:.75rem/1 var(--sans);font-weight:700;
-  padding:11px 20px;border-radius:5px;text-decoration:none;white-space:nowrap;
-  flex-shrink:0;transition:.15s
-}
-.pdf-dl:hover{background:#a87522}
-.pdf-dl svg{width:15px;height:15px;fill:#fff}
-
-/* ─ COVER ────────────────────────────────────────────────────────── */
-.cv-bar{background:var(--navy);padding:9px 28px}
-.cv-bar p{color:#fff;font:.71rem/1 var(--sans);font-weight:700;letter-spacing:.01em}
-.cv-hero{padding:26px 28px 0;max-width:860px}
-.cv-name{font-size:3.1rem;font-weight:800;color:var(--navy);line-height:1.05}
-.cv-name span{color:var(--gold)}
-.cv-pill{display:inline-block;background:#1B5E3B;color:#fff;
-  font:.7rem/1 var(--sans);font-weight:700;padding:6px 20px;
-  border-radius:20px;margin:14px 0 18px}
-.cv-cols{display:grid;grid-template-columns:1fr 205px;gap:24px;
-  padding:0 28px;max-width:860px;margin-bottom:18px}
-.about-hd{font:.84rem/1 var(--sans);font-weight:700;color:var(--navy);
-  margin-bottom:7px;padding-bottom:5px;border-bottom:1px solid var(--rule)}
-.about-p{font-size:.76rem;color:var(--slate);line-height:1.72;margin-bottom:9px}
-.st{width:100%;border-collapse:collapse;font-size:.72rem}
-.st td{padding:5px 0;border-bottom:1px solid var(--rule);vertical-align:middle}
-.st td:nth-child(2){font-weight:800;color:var(--navy);text-align:right;padding:5px 6px}
-.st td:last-child{color:var(--mist);font-size:.58rem;text-align:right}
-.cv-disc{font-size:.57rem;color:var(--mist);font-style:italic;
-  padding:8px 28px 24px;max-width:860px}
-
-/* ─ FOOTER ───────────────────────────────────────────────────────── */
-footer{background:var(--navy);color:rgba(255,255,255,.45);text-align:center;
-  font-size:.61rem;padding:16px 24px;margin-top:32px;line-height:2}
-footer strong{color:var(--gold)}
-
-/* ─ RESPONSIVE ───────────────────────────────────────────────────── */
-@media(max-width:720px){
-  .g2,.g3,.g4,.cv-cols,.sc-grid,.calc{grid-template-columns:1fr}
-  .kpis{grid-template-columns:repeat(2,1fr)}
-  .nav-links{display:none}
-  .pdf-banner{flex-direction:column;text-align:center}
-}
+/* ... keep your entire CSS from before ... */
 </style>
 </head>
 <body>
 
-<!-- ═══════════════════  NAV  ═══════════════════════════════════════ -->
+<!-- NAV -->
 <nav class="nav">
   <div class="nav-brand">CVX <span>/</span> Chevron</div>
   <div class="nav-links">
-    <button class="nl on"  onclick="show('cover',this)">Overview</button>
-    <button class="nl"     onclick="show('fin',this)">Financials</button>
-    <button class="nl"     onclick="show('dcf',this)">DCF</button>
-    <button class="nl"     onclick="show('wacc',this)">WACC</button>
-    <button class="nl"     onclick="show('scen',this)">Scenarios</button>
-    <button class="nl"     onclick="show('calc',this)">Calculator</button>
+    <button class="nl on" onclick="show('cover',this)">Overview</button>
+    <button class="nl" onclick="show('fin',this)">Financials</button>
+    <button class="nl" onclick="show('dcf',this)">DCF</button>
+    <button class="nl" onclick="show('wacc',this)">WACC</button>
+    <button class="nl" onclick="show('scen',this)">Scenarios</button>
+    <button class="nl" onclick="show('calc',this)">Calculator</button>
   </div>
-  <a class="nav-pdf" href="CVX_Report_Final_v2.pdf" download target="_blank">
-    <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zm-1 7V3.5L18.5 9zM8 13h8v1.5H8zm0 3h8v1.5H8zm0-6h3v1.5H8z"/></svg>
-    Download PDF Report
-  </a>
+  <a class="nav-pdf" href="CVX_Report_Final_v2.pdf" download target="_blank">Download PDF Report</a>
+  <a class="nav-pdf" href="CVX_Model.xlsx" download target="_blank">Download Excel Model</a>
 </nav>
 
-<!-- ═══════════════════  TABS  ══════════════════════════════════════ -->
+<!-- TABS -->
 <div class="tabs">
   <button class="tb on" onclick="show('cover',null,this)">Overview</button>
-  <button class="tb"    onclick="show('fin',null,this)">Historical Financials</button>
-  <button class="tb"    onclick="show('dcf',null,this)">DCF &amp; Valuation</button>
-  <button class="tb"    onclick="show('wacc',null,this)">WACC Build-Up</button>
-  <button class="tb"    onclick="show('scen',null,this)">Scenarios &amp; Sensitivity</button>
-  <button class="tb"    onclick="show('calc',null,this)">Live DCF Calculator</button>
+  <button class="tb" onclick="show('fin',null,this)">Financials</button>
+  <button class="tb" onclick="show('dcf',null,this)">DCF & Valuation</button>
+  <button class="tb" onclick="show('wacc',null,this)">WACC Build-Up</button>
+  <button class="tb" onclick="show('scen',null,this)">Scenarios & Sensitivity</button>
+  <button class="tb" onclick="show('calc',null,this)">Live DCF Calculator</button>
 </div>
 
-
-<!-- ═══════════════════  COVER  ═════════════════════════════════════ -->
+<!-- OVERVIEW PANEL -->
 <div id="pg-cover" class="panel on">
-  <div class="cv-bar"><p>CHEVRON CORPORATION &nbsp;·&nbsp; NYSE: CVX &nbsp;·&nbsp; S&amp;P 500 / DJIA &nbsp;·&nbsp; INTEGRATED OIL &amp; GAS &nbsp;·&nbsp; February 2026</p></div>
-
-  <div class="cv-hero">
-    <div class="cv-name">Chevron<br><span>Corporation</span></div>
-    <div class="cv-pill">Integrated Oil &amp; Gas &nbsp;·&nbsp; Aa2 / AA&minus; Rated</div>
-
-    <div class="kpis" style="max-width:860px">
-      <div class="kpi"><div class="kpi-l">Current Price</div><div class="kpi-v" style="color:var(--ink)">$186.76</div><div class="kpi-s">NYSE: CVX</div></div>
-      <div class="kpi"><div class="kpi-l">Implied Price</div><div class="kpi-v" style="color:var(--navy)">$192.03</div><div class="kpi-s">DCF Base Case</div></div>
-      <div class="kpi"><div class="kpi-l">Upside / (Down)</div><div class="kpi-v" style="color:var(--grn)">+2.8%</div><div class="kpi-s">Fairly Valued</div></div>
-      <div class="kpi"><div class="kpi-l">Market Cap</div><div class="kpi-v" style="color:var(--ink)">$339bn</div><div class="kpi-s">1,817mn shares</div></div>
-    </div>
-  </div>
-
-  <!-- PDF Banner -->
-  <div style="max-width:860px;padding:0 28px">
-    <div class="pdf-banner">
-      <div class="pdf-banner-text">
-        <strong>Full 7-Page Valuation Report (PDF)</strong>
-        <span>DCF model · WACC build-up · Historical financials · Scenario analysis · Sensitivity table · Balance sheet</span>
-      </div>
-      <a class="pdf-dl" href="CVX_Report_Final_v2.pdf" download target="_blank">
-        <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8zm-1 7V3.5L18.5 9zM8 13h8v1.5H8zm0 3h8v1.5H8zm0-6h3v1.5H8z"/></svg>
-        Download Full PDF
-      </a>
-    </div>
-  </div>
-
-  <div class="cv-cols">
-    <div>
-      <div class="about-hd">About Chevron Corporation</div>
-      <p class="about-p">Chevron Corporation is one of the world's largest integrated energy companies, incorporated in 1879 and headquartered in San Ramon, California. The company participates in every facet of the oil, natural gas, and geothermal energy industries — from exploration and production to refining, marketing, and transportation.</p>
-      <p class="about-p">Chevron holds major upstream positions across the Permian Basin, Gulf of Mexico, Kazakhstan (Tengizchevroil), and Australia (Gorgon and Wheatstone LNG). Its 2023 acquisition of PDC Energy added DJ Basin and Permian acreage. The pending $53bn all-stock Hess merger extends Chevron into the prolific Stabroek Block in Guyana.</p>
-      <p class="about-p">Downstream operations include refineries at Richmond, El Segundo, and Pascagoula, together with a global retail network under the Chevron, Texaco, and Caltex brands. Chevron is a quarterly dividend payer every year since 1912.</p>
-    </div>
-    <div>
-      <table class="st">
-        <tr><td>Revenue (2024A)</td><td>$202.8bn</td><td>Bloomberg</td></tr>
-        <tr><td>EBITDA (2024A)</td><td>$36.2bn</td><td>17.9% margin</td></tr>
-        <tr><td>Net Income</td><td>$17.7bn</td><td>8.7% margin</td></tr>
-        <tr><td>Diluted EPS</td><td>$9.72</td><td>P/E 19.2×</td></tr>
-        <tr><td>Dividend Yield</td><td>3.5%</td><td>Since 1912</td></tr>
-        <tr><td>EV / EBITDA</td><td>10.3×</td><td>EV $356bn</td></tr>
-        <tr><td>Net Debt (2024A)</td><td>$5.4bn</td><td>D/V 6.5%</td></tr>
-        <tr><td>WACC</td><td>9.11%</td><td>CAPM build</td></tr>
-      </table>
-    </div>
-  </div>
-
-  <div style="max-width:860px;padding:0 28px">
-    <div class="card">
-      <div class="kicker">Historical Performance</div>
-      <div class="h2">Revenue &amp; EBITDA — FY2020A to FY2024A</div>
-      <div class="sub">USD Millions · Bloomberg Terminal, Feb 2026</div>
-      <canvas id="cRevenue" height="100"></canvas>
-    </div>
-  </div>
-
-  <p class="cv-disc">Disclaimer: This report is produced for informational and educational purposes only. It does not constitute investment advice or a recommendation to buy or sell any security. All data sourced from Bloomberg Terminal, CVX US Equity, February 2026.</p>
+  <!-- Your existing cover HTML goes here -->
+  <canvas id="cRevenue" height="100"></canvas>
 </div>
 
-
-<!-- ═══════════════════  FINANCIALS  ════════════════════════════════ -->
+<!-- FINANCIALS PANEL -->
 <div id="pg-fin" class="panel">
-<div class="wrap">
+  <!-- Your existing financials HTML goes here -->
+  <canvas id="cProfit" height="160"></canvas>
+  <canvas id="cEPS" height="160"></canvas>
+</div>
 
-  <div class="card">
-    <div class="kicker">Income Statement</div>
-    <div class="h2">Historical — FY2020A to FY2024A</div>
-    <div class="sub">USD Millions · Bloomberg Consensus Actuals · Bloomberg Terminal 02/10/2026</div>
-    <div class="tw"><table>
-      <thead><tr><th>USD $mn</th><th>2020A</th><th>2021A</th><th>2022A</th><th>2023A</th><th>2024A</th></tr></thead>
-      <tbody>
-        <tr class="sec"><td colspan="6">REVENUE</td></tr>
-        <tr class="tot"><td>Total Revenue</td><td>94,692</td><td>162,465</td><td>246,252</td><td>200,949</td><td>202,792</td></tr>
-        <tr><td class="dim">&nbsp;YoY Growth</td><td class="dim">—</td><td class="pos dim">+71.6%</td><td class="pos dim">+51.6%</td><td class="neg dim">−18.4%</td><td class="pos dim">+0.9%</td></tr>
-        <tr class="sec"><td colspan="6">COSTS &amp; EXPENSES</td></tr>
-        <tr><td>Cost of Revenue</td><td>11,067</td><td>11,718</td><td>12,742</td><td>12,842</td><td>13,387</td></tr>
-        <tr><td>Purchased Crude &amp; Products</td><td>52,148</td><td>92,249</td><td>145,416</td><td>119,196</td><td>119,206</td></tr>
-        <tr><td>Operating Expenses</td><td>20,323</td><td>20,726</td><td>24,714</td><td>24,887</td><td>27,464</td></tr>
-        <tr><td>SG&amp;A</td><td>4,213</td><td>4,014</td><td>4,312</td><td>4,141</td><td>4,834</td></tr>
-        <tr><td>DD&amp;A</td><td>19,508</td><td>17,925</td><td>16,319</td><td>17,326</td><td>17,282</td></tr>
-        <tr class="tot"><td>Total Costs</td><td>102,145</td><td>140,826</td><td>196,578</td><td>171,365</td><td>175,286</td></tr>
-        <tr class="sec"><td colspan="6">OPERATING RESULTS</td></tr>
-        <tr class="tot"><td>EBIT</td><td class="neg">(6,097)</td><td>16,180</td><td>39,950</td><td>26,229</td><td>18,917</td></tr>
-        <tr><td class="dim">&nbsp;EBIT Margin</td><td class="neg dim">−6.4%</td><td class="pos dim">10.0%</td><td class="pos dim">16.2%</td><td class="pos dim">13.1%</td><td class="pos dim">9.3%</td></tr>
-        <tr><td>Pre-Tax Income</td><td class="neg">(7,453)</td><td>21,639</td><td>49,674</td><td>29,584</td><td>27,506</td></tr>
-        <tr><td>Income Tax</td><td class="pos">(1,892)</td><td>5,950</td><td>14,066</td><td>8,173</td><td>9,757</td></tr>
-        <tr class="tot"><td>Net Income</td><td class="neg">(5,543)</td><td>15,689</td><td>35,465</td><td>21,369</td><td>17,661</td></tr>
-        <tr class="sec"><td colspan="6">PER SHARE &amp; SUPPLEMENTAL</td></tr>
-        <tr><td>Diluted EPS ($)</td><td class="neg">(2.96)</td><td>8.14</td><td>18.28</td><td>11.36</td><td>9.72</td></tr>
-        <tr><td>Dividend Per Share ($)</td><td>5.16</td><td>5.31</td><td>5.68</td><td>6.04</td><td>6.52</td></tr>
-        <tr class="tot"><td>EBITDA</td><td>13,411</td><td>34,105</td><td>56,269</td><td>43,555</td><td>36,199</td></tr>
-        <tr class="tot"><td>Free Cash Flow</td><td>1,655</td><td>21,131</td><td>37,628</td><td>19,780</td><td>15,044</td></tr>
-      </tbody>
-    </table></div>
-  </div>
-
-  <div class="g2">
-    <div class="card">
-      <div class="kicker">Profitability</div><div class="h2">EBITDA &amp; Net Income</div>
-      <canvas id="cProfit" height="160"></canvas>
-    </div>
-    <div class="card">
-      <div class="kicker">Per Share</div><div class="h2">EPS &amp; DPS Trend</div>
-      <canvas id="cEPS" height="160"></canvas>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="kicker">Balance Sheet Summary</div>
-    <div class="h2">FY2020A – FY2024A · USD Millions</div>
-    <div class="tw"><table>
-      <thead><tr><th>USD $mn</th><th>2020A</th><th>2021A</th><th>2022A</th><th>2023A</th><th>2024A</th></tr></thead>
-      <tbody>
-        <tr class="sec"><td colspan="6">ASSETS</td></tr>
-        <tr><td>Cash &amp; Equivalents</td><td>9,342</td><td>5,686</td><td>5,596</td><td>5,640</td><td>17,678</td></tr>
-        <tr><td>Accounts Receivable</td><td>15,050</td><td>13,325</td><td>11,471</td><td>18,419</td><td>20,456</td></tr>
-        <tr class="tot"><td>Total Current Assets</td><td>34,021</td><td>28,329</td><td>26,078</td><td>33,738</td><td>50,343</td></tr>
-        <tr><td>PP&amp;E (Net)</td><td>169,207</td><td>150,494</td><td>156,618</td><td>146,961</td><td>143,591</td></tr>
-        <tr class="tot"><td>Total Assets</td><td>253,863</td><td>237,428</td><td>239,790</td><td>239,535</td><td>257,709</td></tr>
-        <tr class="sec"><td colspan="6">LIABILITIES &amp; EQUITY</td></tr>
-        <tr class="tot"><td>Total Current Liabilities</td><td>27,171</td><td>26,530</td><td>22,183</td><td>26,791</td><td>34,208</td></tr>
-        <tr><td>Long-Term Debt</td><td>28,733</td><td>23,691</td><td>42,767</td><td>31,113</td><td>21,375</td></tr>
-        <tr class="tot"><td>Total Liabilities</td><td>98,221</td><td>92,220</td><td>107,064</td><td>99,595</td><td>97,467</td></tr>
-        <tr class="tot"><td>Total Shareholders' Equity</td><td>155,642</td><td>145,221</td><td>132,283</td><td>139,940</td><td>160,242</td></tr>
-        <tr class="sec"><td colspan="6">KEY METRICS</td></tr>
-        <tr><td>Net Debt ($mn)</td><td>25,064</td><td>21,224</td><td>38,688</td><td>25,694</td><td>5,438</td></tr>
-        <tr><td>Net Debt / EBITDA</td><td>1.87×</td><td>0.62×</td><td>0.69×</td><td>0.59×</td><td>0.15×</td></tr>
-        <tr><td>Current Ratio</td><td>1.25×</td><td>1.07×</td><td>1.18×</td><td>1.26×</td><td>1.47×</td></tr>
-        <tr><td>Book Value / Share</td><td>$80.75</td><td>$76.10</td><td>$70.42</td><td>$72.43</td><td>$82.10</td></tr>
-      </tbody>
-    </table></div>
-  </div>
-
-</div></div>
-
-
-<!-- ═══════════════════  DCF  ════════════════════════════════════════ -->
+<!-- DCF PANEL -->
 <div id="pg-dcf" class="panel">
-<div class="wrap">
+  <!-- Your existing DCF table goes here -->
+</div>
 
-  <div class="g4" style="margin-bottom:16px">
-    <div class="card" style="text-align:center"><div class="kicker">Enterprise Value</div><div style="font-size:1.45rem;font-weight:800;color:var(--navy)">$355,961mn</div></div>
-    <div class="card" style="text-align:center"><div class="kicker">Equity Value</div><div style="font-size:1.45rem;font-weight:800;color:var(--navy)">$348,925mn</div></div>
-    <div class="card" style="text-align:center"><div class="kicker">Implied Price</div><div style="font-size:1.45rem;font-weight:800;color:var(--gold)">$192.03</div></div>
-    <div class="card" style="text-align:center"><div class="kicker">Upside vs CMP</div><div style="font-size:1.45rem;font-weight:800;color:var(--grn)">+2.8%</div></div>
-  </div>
-
-  <div class="card">
-    <div class="kicker">DCF Forecast — Base Case</div>
-    <div class="h2">Income Statement &amp; FCFF · FY2025E – FY2034E</div>
-    <div class="sub">Revenue Growth +4.0% · EBIT Margin 13.5% · Tax 30.0% · WACC 9.11% · TGR 2.0%</div>
-    <div class="tw"><table>
-      <thead><tr><th>USD $mn</th><th>2025E</th><th>2026E</th><th>2027E</th><th>2028E</th><th>2029E</th><th>2030E</th><th>2031E</th><th>2032E</th><th>2033E</th><th>2034E</th></tr></thead>
-      <tbody>
-        <tr class="tot"><td>Revenue</td><td>210,904</td><td>219,340</td><td>228,113</td><td>237,238</td><td>246,727</td><td>256,597</td><td>266,860</td><td>277,535</td><td>288,636</td><td>300,182</td></tr>
-        <tr><td class="dim">&nbsp;Growth</td><td class="pos dim">4.0%</td><td class="pos dim">4.0%</td><td class="pos dim">4.0%</td><td class="pos dim">4.0%</td><td class="pos dim">4.0%</td><td class="pos dim">4.0%</td><td class="pos dim">4.0%</td><td class="pos dim">4.0%</td><td class="pos dim">4.0%</td><td class="pos dim">4.0%</td></tr>
-        <tr class="tot"><td>EBIT (13.5%)</td><td>28,472</td><td>29,611</td><td>30,795</td><td>32,027</td><td>33,308</td><td>34,641</td><td>36,026</td><td>37,467</td><td>38,966</td><td>40,525</td></tr>
-        <tr><td>NOPAT</td><td>19,930</td><td>20,728</td><td>21,557</td><td>22,419</td><td>23,316</td><td>24,248</td><td>25,218</td><td>26,227</td><td>27,276</td><td>28,367</td></tr>
-        <tr><td>Plus D&amp;A</td><td>17,675</td><td>17,852</td><td>18,030</td><td>18,211</td><td>18,393</td><td>18,577</td><td>18,762</td><td>18,950</td><td>19,139</td><td>19,331</td></tr>
-        <tr><td>Less Capex</td><td>(15,732)</td><td>(15,968)</td><td>(16,208)</td><td>(16,451)</td><td>(16,698)</td><td>(16,948)</td><td>(17,203)</td><td>(17,461)</td><td>(17,723)</td><td>(17,988)</td></tr>
-        <tr><td>Less ΔWC</td><td>(1,142)</td><td>(1,188)</td><td>(1,235)</td><td>(1,285)</td><td>(1,336)</td><td>(1,389)</td><td>(1,445)</td><td>(1,503)</td><td>(1,563)</td><td>(1,625)</td></tr>
-        <tr class="tot"><td>FCFF</td><td>23,015</td><td>23,798</td><td>24,614</td><td>25,463</td><td>26,346</td><td>27,266</td><td>28,223</td><td>29,219</td><td>30,256</td><td>31,335</td></tr>
-        <tr><td class="dim">Discount Factor</td><td class="dim">0.9165</td><td class="dim">0.8400</td><td class="dim">0.7699</td><td class="dim">0.7056</td><td class="dim">0.6467</td><td class="dim">0.5927</td><td class="dim">0.5432</td><td class="dim">0.4978</td><td class="dim">0.4563</td><td class="dim">0.4182</td></tr>
-        <tr class="tot"><td>PV of FCFF</td><td>21,093</td><td>19,990</td><td>18,949</td><td>17,966</td><td>17,037</td><td>16,160</td><td>15,330</td><td>14,546</td><td>13,805</td><td>13,103</td></tr>
-      </tbody>
-    </table></div>
-  </div>
-
-  <div class="g2">
-    <div class="card">
-      <div class="kicker">FCFF Projection</div><div class="h2">2025E – 2034E</div>
-      <canvas id="cFCFF" height="160"></canvas>
-    </div>
-    <div class="card">
-      <div class="kicker">EV to Equity Bridge</div><div class="h2">USD Millions</div>
-      <div class="bridge" id="bridgeEl" style="margin-top:10px"></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="kicker">EV to Equity Bridge</div><div class="h2">Detailed Walk</div>
-    <div class="tw"><table>
-      <thead><tr><th>Component</th><th>USD $mn</th><th style="text-align:left">Notes</th></tr></thead>
-      <tbody>
-        <tr><td>Sum PV of FCFs (2025E–2034E)</td><td>167,980</td><td class="note">10-yr explicit forecast · WACC 9.11%</td></tr>
-        <tr><td>PV of Terminal Value</td><td>187,981</td><td class="note">Gordon Growth · g=2.0%, WACC=9.11%</td></tr>
-        <tr class="tot"><td>Enterprise Value</td><td>355,961</td><td class="note">TV = 52.8% of EV</td></tr>
-        <tr><td>Less: Net Debt (2024A)</td><td>(6,064)</td><td class="note">Gross debt $23.3bn − cash $17.7bn</td></tr>
-        <tr><td>Less: Minority Interest</td><td>(972)</td><td class="note">Non-controlling interests per B/S</td></tr>
-        <tr class="tot"><td>Equity Value</td><td>348,925</td><td class="note"></td></tr>
-        <tr><td>Diluted Shares (mn)</td><td>1,817</td><td class="note">Bloomberg 2024A diluted weighted avg</td></tr>
-        <tr class="tot"><td>Implied Share Price</td><td>$192.03</td><td class="note">CMP $186.76 · Upside +2.8%</td></tr>
-      </tbody>
-    </table></div>
-  </div>
-
-</div></div>
-
-
-<!-- ═══════════════════  WACC  ═══════════════════════════════════════ -->
+<!-- WACC PANEL -->
 <div id="pg-wacc" class="panel">
-<div class="wrap">
+  <p>WACC content here</p>
+</div>
 
-  <div class="wacc-bar">
-    <div class="wacc-f">WACC = (E/V × Ke) + (D/V × Kd) = (93.46% × 9.525%) + (6.54% × 3.15%)</div>
-    <div class="wacc-v">9.11%</div>
-    <div class="wacc-n">Base case · Equity-heavy structure (E/V 93.5%) means WACC is driven almost entirely by cost of equity</div>
-  </div>
-
-  <div class="g3">
-    <!-- CoE -->
-    <div class="card">
-      <div class="kicker">Cost of Equity</div>
-      <div class="h2">Ke = Rf + β × MRP</div><hr>
-      <div class="tw"><table>
-        <thead><tr><th style="text-align:left">Input</th><th>Value</th><th style="text-align:left">Source</th></tr></thead>
-        <tbody>
-          <tr><td>Risk-Free Rate (Rf)</td><td>4.30%</td><td class="note">10-yr US Treasury, Feb 2026</td></tr>
-          <tr><td>Beta (β)</td><td>0.95</td><td class="note">Bloomberg 5-yr vs S&P 500</td></tr>
-          <tr><td>Market Risk Premium</td><td>5.50%</td><td class="note">Damodaran ERP, Jan 2026</td></tr>
-          <tr class="tot"><td>Cost of Equity (Ke)</td><td>9.53%</td><td class="note">4.30% + 0.95 × 5.50%</td></tr>
-        </tbody>
-      </table></div>
-    </div>
-    <!-- CoD -->
-    <div class="card">
-      <div class="kicker">Cost of Debt</div>
-      <div class="h2">Kd = Pre-tax × (1 − Tax)</div><hr>
-      <div class="tw"><table>
-        <thead><tr><th style="text-align:left">Input</th><th>Value</th><th style="text-align:left">Source</th></tr></thead>
-        <tbody>
-          <tr><td>Pre-tax Cost of Debt</td><td>4.50%</td><td class="note">CVX Aa2/AA−; blended YTM</td></tr>
-          <tr><td>Tax Rate</td><td>30.0%</td><td class="note">Normalised effective rate</td></tr>
-          <tr class="tot"><td>Cost of Debt (Kd)</td><td>3.15%</td><td class="note">4.50% × (1 − 30%)</td></tr>
-        </tbody>
-      </table></div>
-    </div>
-    <!-- Capital Structure -->
-    <div class="card">
-      <div class="kicker">Capital Structure</div>
-      <div class="h2">Market-Value Weights</div><hr>
-      <div class="tw"><table>
-        <thead><tr><th style="text-align:left">Input</th><th>Value</th><th style="text-align:left">Weight</th></tr></thead>
-        <tbody>
-          <tr><td>Market Cap (Equity)</td><td>$339,422mn</td><td class="note">E/V = 93.46%</td></tr>
-          <tr><td>Total Debt (2024A)</td><td>$23,742mn</td><td class="note">D/V = 6.54%</td></tr>
-          <tr class="tot"><td>Total Capital (E+D)</td><td>$363,164mn</td><td class="note">WACC basis</td></tr>
-        </tbody>
-      </table></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="kicker">WACC Sensitivity</div>
-    <div class="h2">WACC vs Beta &amp; Market Risk Premium</div>
-    <div class="sub">Gold = base case (β = 0.95, MRP = 5.5%) → WACC = 9.11%</div>
-    <div class="heat"><table>
-      <thead><tr><th>β \ MRP</th><th>MRP 4.5%</th><th>MRP 5.0%</th><th>MRP 5.5%</th><th>MRP 6.0%</th><th>MRP 6.5%</th></tr></thead>
-      <tbody id="waccHeat"></tbody>
-    </table></div>
-  </div>
-
-</div></div>
-
-
-<!-- ═══════════════════  SCENARIOS  ═════════════════════════════════ -->
+<!-- SCENARIOS PANEL -->
 <div id="pg-scen" class="panel">
-<div class="wrap">
+  <p>Scenarios content here</p>
+</div>
 
-  <div class="sc-grid">
-    <div class="sc w">
-      <div class="sc-tag">Worst Case</div>
-      <div class="sc-px">$61.37</div>
-      <div class="sc-ud" style="color:var(--red)">−67.1% vs CMP $186.76</div>
-      <div class="sc-rows">
-        <div><span>Revenue Growth</span><span>−2.0%</span></div>
-        <div><span>EBIT Margin</span><span>7.0%</span></div>
-        <div><span>Tax Rate</span><span>32.0%</span></div>
-        <div><span>WACC</span><span>10.39%</span></div>
-        <div><span>Terminal Growth</span><span>1.5%</span></div>
-      </div>
-    </div>
-    <div class="sc b">
-      <div class="sc-tag">Base Case</div>
-      <div class="sc-px">$192.03</div>
-      <div class="sc-ud" style="color:var(--grn)">+2.8% vs CMP $186.76</div>
-      <div class="sc-rows">
-        <div><span>Revenue Growth</span><span>+4.0%</span></div>
-        <div><span>EBIT Margin</span><span>13.5%</span></div>
-        <div><span>Tax Rate</span><span>30.0%</span></div>
-        <div><span>WACC</span><span>9.11%</span></div>
-        <div><span>Terminal Growth</span><span>2.0%</span></div>
-      </div>
-    </div>
-    <div class="sc g">
-      <div class="sc-tag">Best Case</div>
-      <div class="sc-px">$338.35</div>
-      <div class="sc-ud" style="color:var(--grn)">+81.2% vs CMP $186.76</div>
-      <div class="sc-rows">
-        <div><span>Revenue Growth</span><span>+7.0%</span></div>
-        <div><span>EBIT Margin</span><span>17.0%</span></div>
-        <div><span>Tax Rate</span><span>28.0%</span></div>
-        <div><span>WACC</span><span>7.96%</span></div>
-        <div><span>Terminal Growth</span><span>2.5%</span></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="kicker">Sensitivity Analysis</div>
-    <div class="h2">Implied Share Price · WACC × Terminal Growth Rate</div>
-    <div class="sub">Gold = base case (WACC 9.11%, g 2.0%) = $192.03 · Red &lt; $130 · Green &gt; $280</div>
-    <div class="heat"><table>
-      <thead><tr><th>WACC \ g</th><th>g = 1.0%</th><th>g = 1.5%</th><th>g = 2.0%</th><th>g = 2.5%</th><th>g = 3.0%</th></tr></thead>
-      <tbody id="sensBody"></tbody>
-    </table></div>
-  </div>
-
-  <div class="card">
-    <div class="kicker">Scenario Comparison</div>
-    <div class="h2">Implied Share Price by Scenario</div>
-    <canvas id="cScen" height="90"></canvas>
-  </div>
-
-</div></div>
-
-
-<!-- ═══════════════════  CALCULATOR  ════════════════════════════════ -->
+<!-- CALCULATOR PANEL -->
 <div id="pg-calc" class="panel">
-<div class="wrap">
+  <p>Live DCF Calculator here</p>
+</div>
 
-  <div style="margin-bottom:16px">
-    <div class="kicker">Interactive Tool</div>
-    <div class="h2" style="font-size:1.15rem">Live DCF Calculator</div>
-    <div class="sub" style="margin-bottom:0">Move the sliders to see how each assumption drives the implied share price — in real time.</div>
-  </div>
-
-  <div class="calc">
-    <!-- SLIDERS -->
-    <div class="inp">
-      <div class="ig">
-        <label>Revenue Growth <b id="lRG">4.0%</b></label>
-        <input type="range" id="sRG" min="-5" max="12" step="0.5" value="4" oninput="calc()">
-        <div class="ig-note">Base +4.0% · Range −5% to +12%</div>
-      </div>
-      <div class="ig">
-        <label>EBIT Margin <b id="lEM">13.5%</b></label>
-        <input type="range" id="sEM" min="4" max="22" step="0.5" value="13.5" oninput="calc()">
-        <div class="ig-note">Base 13.5% · 2022A peak: 16.2%</div>
-      </div>
-      <div class="ig">
-        <label>Tax Rate <b id="lTX">30.0%</b></label>
-        <input type="range" id="sTX" min="20" max="42" step="0.5" value="30" oninput="calc()">
-        <div class="ig-note">Base 30.0% · 2024A actual: 35.5%</div>
-      </div>
-      <div class="ig">
-        <label>WACC <b id="lWC">9.11%</b></label>
-        <input type="range" id="sWC" min="6" max="14" step="0.1" value="9.11" oninput="calc()">
-        <div class="ig-note">Base 9.11% · CAPM build-up</div>
-      </div>
-      <div class="ig">
-        <label>Terminal Growth Rate <b id="lTG">2.0%</b></label>
-        <input type="range" id="sTG" min="0.5" max="4" step="0.25" value="2" oninput="calc()">
-        <div class="ig-note">Base 2.0% · Must stay below WACC</div>
-      </div>
-      <div class="ig">
-        <label>D&amp;A Base Year ($mn) <b id="lDA">$17,500</b></label>
-        <input type="range" id="sDA" min="12000" max="24000" step="500" value="17500" oninput="calc()">
-        <div class="ig-note">Base $17,500mn · Anchored to 2024A</div>
-      </div>
-      <div class="ig">
-        <label>Capex Base Year ($mn) <b id="lCX">$15,500</b></label>
-        <input type="range" id="sCX" min="10000" max="22000" step="500" value="15500" oninput="calc()">
-        <div class="ig-note">Base $15,500mn · Mgmt guide $14.5–15.5bn</div>
-      </div>
-    </div>
-
-    <!-- RESULTS -->
-    <div>
-      <div class="hero">
-        <div class="hero-l">Implied Share Price</div>
-        <div class="hero-p" id="rPx">$192.03</div>
-        <div class="hero-u up" id="rUD">+2.8% vs CMP $186.76</div>
-      </div>
-      <div class="breakdown">
-        <div class="bdr"><span class="lbl">Sum PV FCFs (2025E–2034E)</span><span id="rSPV">$167,980mn</span></div>
-        <div class="bdr"><span class="lbl">PV of Terminal Value</span><span id="rPTV">$187,981mn</span></div>
-        <div class="bdr"><span class="lbl">Enterprise Value</span><span id="rEV">$355,961mn</span></div>
-        <div class="bdr"><span class="lbl">Less: Net Debt</span><span>($6,064mn)</span></div>
-        <div class="bdr"><span class="lbl">Less: Minority Interest</span><span>($972mn)</span></div>
-        <div class="bdr"><span class="lbl">Equity Value</span><span id="rEQ">$348,925mn</span></div>
-        <div class="bdr"><span class="lbl">÷ Diluted Shares (mn)</span><span>1,817</span></div>
-        <div class="bdr"><span class="lbl">Implied Share Price</span><span id="rP2">$192.03</span></div>
-      </div>
-      <div style="margin-top:14px">
-        <canvas id="cCalc" height="140"></canvas>
-      </div>
-    </div>
-  </div>
-
-</div></div>
-
-
-<!-- ═══════════════════  FOOTER  ════════════════════════════════════ -->
-<footer>
-  <strong>CHEVRON CORPORATION (CVX)</strong> — Financial Model &amp; DCF Valuation &nbsp;·&nbsp; NYSE: CVX &nbsp;·&nbsp; USD Millions &nbsp;·&nbsp; FY December<br>
-  Data: Bloomberg Terminal, CVX US Equity, February 2026 &nbsp;·&nbsp; For analytical and educational purposes only — not investment advice<br>
-  FCFF = NOPAT + D&amp;A − Capex − ΔWC &nbsp;·&nbsp; Terminal Value via Gordon Growth Model &nbsp;·&nbsp; WACC via CAPM
-</footer>
-
-
-<!-- ═══════════════════  JS  ═════════════════════════════════════════ -->
 <script>
-// ── TAB ROUTING ──────────────────────────────────────────────────────────────
-const PAGES = {cover:'pg-cover',fin:'pg-fin',dcf:'pg-dcf',wacc:'pg-wacc',scen:'pg-scen',calc:'pg-calc'};
-const navBtns  = [...document.querySelectorAll('.nav-links .nl')];
-const tabBtns  = [...document.querySelectorAll('.tabs .tb')];
-
-function show(id, navEl, tabEl) {
-  Object.values(PAGES).forEach(p=>document.getElementById(p).classList.remove('on'));
-  document.getElementById(PAGES[id]).classList.add('on');
-  navBtns.forEach(b=>b.classList.remove('on'));
-  tabBtns.forEach(b=>b.classList.remove('on'));
-  navBtns.forEach(b=>{ if(b.getAttribute('onclick')?.includes(`'${id}'`)) b.classList.add('on'); });
-  tabBtns.forEach(b=>{ if(b.getAttribute('onclick')?.includes(`'${id}'`)) b.classList.add('on'); });
-  window.scrollTo(0,0);
-  setTimeout(drawCharts, 80);
+// ─────────── Tab Switching ─────────────
+function show(panel, btn){
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.nl, .tb').forEach(b => b.classList.remove('on'));
+  if(panel) document.getElementById('pg-'+panel).classList.add('on');
+  if(btn) btn.classList.add('on');
 }
 
-// ── PALETTE ──────────────────────────────────────────────────────────────────
-const C = {
-  navy:'#0A2342', gold:'#C9922A', slate:'#4A5568',
-  mist:'#8896A8', grn:'#1A5C35', red:'#7B1F1F', rule:'#CBD5E0'
-};
-const charts = {};
+// ─────────── Chart.js Charts ───────────
 
-function mkChart(id, cfg) {
-  const el = document.getElementById(id); if(!el) return;
-  if(charts[id]) charts[id].destroy();
-  charts[id] = new Chart(el, cfg);
-}
+// Revenue chart
+const ctxRev = document.getElementById('cRevenue').getContext('2d');
+new Chart(ctxRev, {
+  type: 'line',
+  data: {
+    labels: ['2020','2021','2022','2023','2024'],
+    datasets: [{
+      label:'Revenue $mn',
+      data:[94692,162465,246252,200949,202792],
+      borderColor:'#1B4F8A',
+      backgroundColor:'rgba(27,79,138,0.2)',
+      tension:0.3,
+      fill:true
+    }]
+  },
+  options:{responsive:true, plugins:{legend:{display:false}}}
+});
 
-const BASE = {
-  responsive:true,
-  plugins:{legend:{labels:{font:{size:11},color:C.slate}},tooltip:{mode:'index',intersect:false}},
-  scales:{
-    x:{grid:{color:C.rule},ticks:{color:C.slate,font:{size:11}}},
-    y:{grid:{color:C.rule},ticks:{color:C.slate,font:{size:11},
-       callback:v=>Math.abs(v)>=1000?`$${(v/1000).toFixed(0)}bn`:v}}
-  }
-};
+// Profit chart
+const ctxProfit = document.getElementById('cProfit').getContext('2d');
+new Chart(ctxProfit, {
+  type:'bar',
+  data:{
+    labels:['2020','2021','2022','2023','2024'],
+    datasets:[
+      {label:'EBITDA', data:[13411,34105,56269,43555,36199], backgroundColor:'#1B4F8A'},
+      {label:'Net Income', data:[-5543,15689,35465,21369,17661], backgroundColor:'#C9922A'}
+    ]
+  },
+  options:{responsive:true, plugins:{legend:{position:'top'}}}
+});
 
-// ── STATIC CHARTS ─────────────────────────────────────────────────────────────
-function drawCharts() {
-  const YH = ['2020A','2021A','2022A','2023A','2024A'];
-  const YF = ['2025E','2026E','2027E','2028E','2029E','2030E','2031E','2032E','2033E','2034E'];
-
-  // Revenue bar
-  mkChart('cRevenue',{type:'bar',data:{labels:YH,datasets:[
-    {label:'Revenue',data:[94692,162465,246252,200949,202792],backgroundColor:'rgba(10,35,66,.78)',borderRadius:3},
-    {label:'EBITDA', data:[13411,34105,56269,43555,36199],backgroundColor:C.gold,borderRadius:3},
-  ]},options:BASE});
-
-  // Profit
-  mkChart('cProfit',{type:'bar',data:{labels:YH,datasets:[
-    {label:'EBITDA',    data:[13411,34105,56269,43555,36199],backgroundColor:C.gold,borderRadius:3},
-    {label:'Net Income',data:[-5543,15689,35465,21369,17661],backgroundColor:C.navy,borderRadius:3},
-  ]},options:BASE});
-
-  // EPS / DPS
-  mkChart('cEPS',{type:'line',data:{labels:YH,datasets:[
-    {label:'Diluted EPS ($)',data:[-2.96,8.14,18.28,11.36,9.72],
-     borderColor:C.navy,backgroundColor:'rgba(10,35,66,.08)',
-     tension:.35,fill:true,pointRadius:4,pointBackgroundColor:C.navy},
-    {label:'DPS ($)',data:[5.16,5.31,5.68,6.04,6.52],
-     borderColor:C.gold,backgroundColor:'rgba(201,146,42,.08)',
-     tension:.35,fill:false,pointRadius:4,pointBackgroundColor:C.gold},
-  ]},options:{...BASE,scales:{
-    x:BASE.scales.x,
-    y:{...BASE.scales.y,ticks:{...BASE.scales.y.ticks,callback:v=>`$${v}`}}
-  }}});
-
-  // FCFF
-  mkChart('cFCFF',{type:'bar',data:{labels:YF,datasets:[
-    {label:'FCFF',    data:[23015,23798,24614,25463,26346,27266,28223,29219,30256,31335],backgroundColor:C.navy,borderRadius:3},
-    {label:'PV FCFF', data:[21093,19990,18949,17966,17037,16160,15330,14546,13805,13103],backgroundColor:C.gold,borderRadius:3},
-  ]},options:BASE});
-
-  // Bridge bars
-  const bridgeEl = document.getElementById('bridgeEl');
-  if(bridgeEl){
-    const rows=[
-      {l:'Sum PV FCFs',   v:167980, c:C.navy, bold:false},
-      {l:'PV Terminal Value',v:187981,c:C.gold, bold:false},
-      {l:'Enterprise Value', v:355961,c:C.navy, bold:true},
-      {l:'Less Net Debt',    v:-6064, c:C.red,  bold:false},
-      {l:'Minority Interest',v:-972,  c:C.red,  bold:false},
-      {l:'Equity Value',     v:348925,c:C.grn,  bold:true},
-    ];
-    const MAX=355961;
-    bridgeEl.innerHTML=rows.map(r=>`
-      <div class="br">
-        <div class="br-lbl${r.bold?' bold':''}">${r.l}</div>
-        <div class="br-track">
-          <div class="br-bar" style="width:${Math.abs(r.v)/MAX*100}%;background:${r.c}"></div>
-        </div>
-        <div class="br-val">${r.v<0?'('+fmt(-r.v)+')':'$'+fmt(r.v)}</div>
-      </div>`).join('');
-  }
-
-  // Scenario
-  mkChart('cScen',{type:'bar',data:{
-    labels:['Worst Case','Base Case','Best Case'],
-    datasets:[{label:'Implied Price ($)',data:[61.37,192.03,338.35],
-      backgroundColor:[C.red,C.navy,C.grn],borderRadius:4}]
-  },options:{...BASE,plugins:{...BASE.plugins,legend:{display:false}},
-    scales:{x:BASE.scales.x,y:{...BASE.scales.y,ticks:{...BASE.scales.y.ticks,callback:v=>`$${v}`}}}}});
-
-  // WACC heat table
-  const betas=[0.80,0.85,0.90,0.95,1.00,1.05,1.10];
-  const mrps=[0.045,0.050,0.055,0.060,0.065];
-  const RF=0.043, TAX=0.30, KD_PRE=0.045;
-  const DE_RATIO=0.0654/0.9346;
-  let whtml='';
-  betas.forEach(b=>{
-    whtml+=`<tr><td style="text-align:left;font-weight:600">β = ${b.toFixed(2)}</td>`;
-    mrps.forEach(mrp=>{
-      const ke=RF+b*mrp;
-      const kd=KD_PRE*(1-TAX);
-      const ev=0.9346,dv=0.0654;
-      const w=(ev*ke+dv*kd)*100;
-      const isBase=Math.abs(b-0.95)<0.001&&Math.abs(mrp-0.055)<0.001;
-      const cls=isBase?'h-base':w<8?'h-grn':w>10?'h-red':'h-mid';
-      whtml+=`<td class="${cls}">${w.toFixed(2)}%</td>`;
-    });
-    whtml+='</tr>';
-  });
-  const wbody=document.getElementById('waccHeat');
-  if(wbody) wbody.innerHTML=whtml;
-
-  // Sensitivity table
-  const waccs=[0.080,0.085,0.0911,0.090,0.095,0.100];
-  const tgrs=[0.010,0.015,0.020,0.025,0.030];
-  const SPV=167980, ND=6064, MI=972, SH=1817, FCF10=31335;
-  function spx(w,g){
-    const tv=FCF10*(1+g)/(w-g);
-    const pvtv=tv/Math.pow(1+w,10);
-    return (SPV+pvtv-ND-MI)/SH;
-  }
-  let shtml='';
-  waccs.forEach(w=>{
-    const wlbl=Math.abs(w-0.0911)<0.001?`<b>${(w*100).toFixed(2)}%</b>`:`${(w*100).toFixed(1)}%`;
-    shtml+=`<tr><td style="text-align:left;font-weight:600">WACC ${wlbl}</td>`;
-    tgrs.forEach(g=>{
-      const p=spx(w,g);
-      const isBase=Math.abs(w-0.0911)<0.001&&Math.abs(g-0.02)<0.001;
-      const cls=isBase?'h-base':p<130?'h-red':p>280?'h-grn':'h-mid';
-      shtml+=`<td class="${cls}">$${p.toFixed(2)}</td>`;
-    });
-    shtml+='</tr>';
-  });
-  const sbody=document.getElementById('sensBody');
-  if(sbody) sbody.innerHTML=shtml;
-
-  calc();
-}
-
-// ── LIVE CALCULATOR ──────────────────────────────────────────────────────────
-const CMP=186.76, ND=6064, MI=972, SH=1817, REV0=202792;
-
-function calc(){
-  const rg = +document.getElementById('sRG').value/100;
-  const em = +document.getElementById('sEM').value/100;
-  const tx = +document.getElementById('sTX').value/100;
-  const wc = +document.getElementById('sWC').value/100;
-  const tg = +document.getElementById('sTG').value/100;
-  const da = +document.getElementById('sDA').value;
-  const cx = +document.getElementById('sCX').value;
-
-  document.getElementById('lRG').textContent = (rg*100).toFixed(1)+'%';
-  document.getElementById('lEM').textContent = (em*100).toFixed(1)+'%';
-  document.getElementById('lTX').textContent = (tx*100).toFixed(1)+'%';
-  document.getElementById('lWC').textContent = (wc*100).toFixed(2)+'%';
-  document.getElementById('lTG').textContent = (tg*100).toFixed(2)+'%';
-  document.getElementById('lDA').textContent = '$'+da.toLocaleString();
-  document.getElementById('lCX').textContent = '$'+cx.toLocaleString();
-
-  if(wc<=tg){ setR(NaN); return; }
-
-  let rev=REV0, daY=da, cxY=cx, spv=0;
-  const pvArr=[];
-  for(let i=1;i<=10;i++){
-    rev*=(1+rg); daY*=1.01; cxY*=1.015;
-    const nopat=rev*em*(1-tx);
-    const wch=rev*(-0.00541);
-    const fcf=nopat+daY-cxY-wch;
-    const df=1/Math.pow(1+wc,i);
-    const pv=fcf*df;
-    spv+=pv; pvArr.push(Math.round(pv));
-  }
-  const fcfLast=REV0*Math.pow(1+rg,10)*em*(1-tx)+da*Math.pow(1.01,10)
-                -cx*Math.pow(1.015,10)-REV0*Math.pow(1+rg,10)*(-0.00541);
-  const tv=fcfLast*(1+tg)/(wc-tg);
-  const pvtv=tv/Math.pow(1+wc,10);
-  const ev=spv+pvtv;
-  const eqv=ev-ND-MI;
-  const px=eqv/SH;
-  setR(px,spv,pvtv,ev,eqv,pvArr);
-}
-
-function setR(px,spv,pvtv,ev,eqv,pvArr){
-  if(isNaN(px)||px<0){
-    document.getElementById('rPx').textContent='N/A';
-    document.getElementById('rUD').textContent='TGR must be < WACC';
-    document.getElementById('rUD').className='hero-u dn';
-    return;
-  }
-  const ud=(px-CMP)/CMP*100;
-  document.getElementById('rPx').textContent='$'+px.toFixed(2);
-  document.getElementById('rUD').textContent=(ud>=0?'+':'')+ud.toFixed(1)+'% vs CMP $'+CMP;
-  document.getElementById('rUD').className='hero-u '+(ud>=0?'up':'dn');
-  document.getElementById('rSPV').textContent='$'+fmt(Math.round(spv))+'mn';
-  document.getElementById('rPTV').textContent='$'+fmt(Math.round(pvtv))+'mn';
-  document.getElementById('rEV').textContent='$'+fmt(Math.round(ev))+'mn';
-  document.getElementById('rEQ').textContent='$'+fmt(Math.round(eqv))+'mn';
-  document.getElementById('rP2').textContent='$'+px.toFixed(2);
-
-  const YF=['2025E','2026E','2027E','2028E','2029E','2030E','2031E','2032E','2033E','2034E'];
-  mkChart('cCalc',{type:'bar',data:{labels:YF,datasets:[{
-    label:'PV of FCFF ($mn)',
-    data:pvArr,
-    backgroundColor:pvArr.map((_,i)=>i<5?C.navy:C.gold),
-    borderRadius:3
-  }]},options:{...BASE,
-    plugins:{...BASE.plugins,legend:{display:false},
-      title:{display:true,text:'Discounted FCFs by Year (navy = 2025–2029, gold = 2030–2034)',color:C.slate,font:{size:10}}},
-  }});
-}
-
-function fmt(n){ return n.toLocaleString(); }
-
-// ── INIT ─────────────────────────────────────────────────────────────────────
-window.addEventListener('load', ()=>{ drawCharts(); });
+// EPS chart
+const ctxEPS = document.getElementById('cEPS').getContext('2d');
+new Chart(ctxEPS, {
+  type:'line',
+  data:{
+    labels:['2020','2021','2022','2023','2024'],
+    datasets:[
+      {label:'EPS', data:[-2.96,8.14,18.28,11.36,9.72], borderColor:'#1B4F8A', tension:0.3},
+      {label:'DPS', data:[5.16,5.31,5.68,6.04,6.52], borderColor:'#C9922A', tension:0.3}
+    ]
+  },
+  options:{responsive:true, plugins:{legend:{position:'top'}}}
+});
 </script>
+
 </body>
 </html>
